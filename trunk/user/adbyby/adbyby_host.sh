@@ -4,3 +4,5 @@
 https://cdn.jsdelivr.net/gh/VeleSila/yhosts/hosts
 #tvbox
 https://dev.tencent.com/u/shaoxia1991/p/yhosts/git/raw/master/data/tvbox.txt
+https://cdn.jsdelivr.net/gh/sbwml/halflife-list@master/ad-pc.txt
+https://gitea.com/Cats-Team/AdRules/raw/branch/main/hosts.txt
