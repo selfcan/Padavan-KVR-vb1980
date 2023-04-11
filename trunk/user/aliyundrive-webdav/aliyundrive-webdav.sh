@@ -17,7 +17,8 @@ dl_ald() {
     fi
     if [ ! -s "$SVC_PATH" ] && [ -d "/tmp/aliyundrive" ] ; then
     logger -t "【阿里云盘】" "最新版本 $tag下载失败"
-    static_ald="https://github.com/messense/aliyundrive-webdav/releases/download/v1.10.6/aliyundrive-webdav-v1.10.6.mipsel-unknown-linux-musl.tar.gz"
+    #static_ald="https://github.com/messense/aliyundrive-webdav/releases/download/v1.10.6/aliyundrive-webdav-v1.10.6.mipsel-unknown-linux-musl.tar.gz"
+    static_ald="https://39-165-70-245.d.cjjd15.com:30443/download-cdn.123pan.cn/123-87/57778d00/1812191753-0/57778d00b1de8bdbeb0c9e3a41ddd857/c-m1?v=1&t=1681286072&s=f7046a9f6345f6c88922ae8391f42803&filename=aliyundrive-webdav-v2.2.0.mipsel-unknown-linux-musl.tar.gz&d=8290f862"
     logger -t "【阿里云盘】" "开始下载 $static_ald"
     wgetcurl.sh "/tmp/aliyundrive/aliyundrive.tar.gz" "$static_ald"
     tar -xzvf /tmp/aliyundrive/aliyundrive.tar.gz -C /tmp/aliyundrive
@@ -26,8 +27,8 @@ dl_ald() {
     if [ ! -s "$SVC_PATH" ] && [ -d "/tmp/aliyundrive" ] ; then
     logger -t "【阿里云盘】" "最新版本获取失败！！！"
     logger -t "【阿里云盘】" "开始下载备用程序https://github.com/vb1980/Padavan-KVR/main/trunk/user/aliyundrive-webdav/aliyundrive-webdav"
-    #wgetcurl.sh "/tmp/aliyundrive/aliyundrive-webdav" "https://github.com/vb1980/Padavan-KVR/main/trunk/user/aliyundrive-webdav/aliyundrive-webdav"
-    wgetcurl.sh "/tmp/aliyundrive/aliyundrive-webdav" "https://39-165-70-245.d.cjjd15.com:30443/download-cdn.123pan.cn/123-87/57778d00/1812191753-0/57778d00b1de8bdbeb0c9e3a41ddd857/c-m1?v=1&t=1681286072&s=f7046a9f6345f6c88922ae8391f42803&filename=aliyundrive-webdav-v2.2.0.mipsel-unknown-linux-musl.tar.gz&d=8290f862"
+    wgetcurl.sh "/tmp/aliyundrive/aliyundrive-webdav" "https://github.com/vb1980/Padavan-KVR/main/trunk/user/aliyundrive-webdav/aliyundrive-webdav"
+    #wgetcurl.sh "/tmp/aliyundrive/aliyundrive-webdav" "https://39-165-70-245.d.cjjd15.com:30443/download-cdn.123pan.cn/123-87/57778d00/1812191753-0/57778d00b1de8bdbeb0c9e3a41ddd857/c-m1?v=1&t=1681286072&s=f7046a9f6345f6c88922ae8391f42803&filename=aliyundrive-webdav-v2.2.0.mipsel-unknown-linux-musl.tar.gz&d=8290f862"
     fi
       enable=$(nvram get aliyundrive_enable)
       if [ "$enable" = "0" ] ;then
