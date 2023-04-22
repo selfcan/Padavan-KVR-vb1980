@@ -17,6 +17,12 @@ if [ ! -f "/etc/storage/ad_config_script.sh" ] ; then
 cp -rf /etc_ro/ad_config_script.sh /etc/storage/
 chmod 755 "/etc/storage/ad_config_script.sh"
 fi
+if [ ! -f "/etc/storage/alist.sh" ] ; then
+cp -rf /etc_ro/alist.sh /etc/storage/
+chmod 755 "/etc/storage/alist.sh"
+if [ ! -f "/etc/storage/tracker.sh" ] ; then
+cp -rf /etc_ro/tracker.sh /etc/storage/
+chmod 755 "/etc/storage/tracker.sh"
 if [ ! -f "/etc/storage/frp_script.sh" ] ; then
 cp -rf /etc_ro/frp_script.sh /etc/storage/
 chmod 755 "/etc/storage/frp_script.sh"
