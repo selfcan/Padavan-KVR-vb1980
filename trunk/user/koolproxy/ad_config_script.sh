@@ -36,6 +36,7 @@ adblocks=`nvram get adbyby_adblocks`
 cat > "/tmp/rule_DOMAIN.txt" <<-\EOF
 # 【可选多项，会占用内存：删除前面的#可生效，前面添加#停用规则】
 https://easylist-downloads.adblockplus.org/easylistchina.txt
+https://cdn.jsdelivr.net/gh/sbwml/halflife-list@master/ad-pc.txt
 
 
 EOF
