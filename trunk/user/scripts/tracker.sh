@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sleep 30
+
 /usr/bin/aria.sh stop
 
 aria_config_file="/media/AiCard_01/aria/config/aria2.conf" #修改为你的aria2.conf的绝对地址
