@@ -4,7 +4,9 @@
 https://cdn.jsdelivr.net/gh/VeleSila/yhosts/hosts
 #tvbox
 https://dev.tencent.com/u/shaoxia1991/p/yhosts/git/raw/master/data/tvbox.txt
-https://cdn.jsdelivr.net/gh/sbwml/halflife-list@master/ad-pc.txt
-https://gitea.com/Cats-Team/AdRules/raw/branch/main/hosts.txt
-https://easylist-downloads.adblockplus.org/easylist.txt
-https://easylist-downloads.adblockplus.org/easylistchina.txt
+#https://cdn.jsdelivr.net/gh/sbwml/halflife-list@master/ad-pc.txt
+#https://gitea.com/Cats-Team/AdRules/raw/branch/main/hosts.txt
+#https://easylist-downloads.adblockplus.org/easylist.txt
+#https://easylist-downloads.adblockplus.org/easylistchina.txt
+#https://easylist-downloads.adblockplus.org/easylistchina+easylist.txt
+https://raw.githubusercontent.com/Goooler/1024_hosts/master/hosts
