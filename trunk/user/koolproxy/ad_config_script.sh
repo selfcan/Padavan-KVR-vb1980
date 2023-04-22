@@ -35,7 +35,7 @@ nvram set adbyby_adblocks=1
 adblocks=`nvram get adbyby_adblocks`
 cat > "/tmp/rule_DOMAIN.txt" <<-\EOF
 # 【可选多项，会占用内存：删除前面的#可生效，前面添加#停用规则】
-# https://easylist-downloads.adblockplus.org/easylistchina.txt
+https://easylist-downloads.adblockplus.org/easylistchina.txt
 
 
 EOF
