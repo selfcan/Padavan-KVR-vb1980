@@ -96,5 +96,5 @@ jobs:
       uses: actions/upload-artifact@master
       if: always()
       with:
-        name: Padavan-KVR-NEWIFI3
+        name: Padavan-KVR-HC5861
         path: /opt/images
