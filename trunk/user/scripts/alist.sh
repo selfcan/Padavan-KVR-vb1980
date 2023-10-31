@@ -5,6 +5,8 @@ alist="$upanPath/alist/alist"
 [ -z "$upanPath" ] && alist="/tmp/alist/alist"
 alist_upanPath=""
 etcsize=`expr $(df -k | grep "% /etc" | awk 'NR==1' | awk -F' ' '{print $4}' | tr -d "M" ) + 0`
+D="/etc/storage/cron/crontabs"
+F="$D/`nvram get http_username`"
 alist_restart () {
     
     logger -t "【AList】" "重新启动"
@@ -16,9 +18,14 @@ alist_restart () {
 alist_keep () {
 logger -t "【AList】" "主页配置alist过后建议控制台或ttyd执行/etc/storage/alist.sh save或alist主页进行备份，防止断电后配置不同步！"
 logger -t "【AList】" "守护进程启动"
-cronset '#alist守护进程' "*/1 * * * * test -z \"\$(pidof alist)\" && /etc/storage/alist.sh restart #alist守护进程"
-
-cronset '#alist配置备份' "22 */8 * * * /etc/storage/alist.sh save #alist配置备份"
+sed -Ei '/alist守护进程|^$/d' "$F"
+cat >> "$F" <<-OSC
+*/1 * * * * test -z "\`pidof alist\`"  && /etc/storage/alist.sh restart #alist守护进程"
+OSC
+sed -Ei '/alist配置备份|^$/d' "$F"
+cat >> "$F" <<-OSC
+22 */8 * * * /etc/storage/alist.sh save #alist配置备份"
+OSC
 }
 
 alist_save () {
@@ -59,13 +66,14 @@ upanPath="`df -m | grep /dev/mmcb | grep -E "$(echo $(/usr/bin/find /dev/ -name 
 }
 
 alist_start() {
+sed -Ei '/alist守护进程|^$/d' "$F"
 rm -rf /tmp/alist_save.sh
 if [ ! -s /tmp/var/data/config.json ] || [ ! -s /tmp/alist_backup.tgz ] ;then
 	 killall alist_save.sh
 	 killall -9 alist_save.sh
 fi
 if [ -z "$upanPath" ] ; then 
-   Available_A=$(df -m | grep "% /tmp" | awk 'NR==1' | awk -F' ' '{print $4}'| tr -d 'M' | tr -d '' | cut -f1 -d".")
+   Available_A="$(df -m | grep "% /tmp" | awk 'NR==1' | awk '{print $4}'| tr -d 'M' | cut -f1 -d".")"
    Available_B=$(df -m | grep "% /tmp" | awk 'NR==1' | awk -F' ' '{print $2}'| tr -d 'M' | tr -d '' | cut -f1 -d".")
    Available_B=`expr $Available_B + 20`
    if [ "$Available_A" -lt 10 ];then
@@ -117,7 +125,8 @@ if [ -z "$upanPath" ] ; then
    datalog="$(cat /tmp/alist/data/config.json | grep enable | awk '{print $2}' | tr -d "," )"
    [ "$datalog" = "true" ] && sed -i 's|"enable": true,|"enable": false,|g' /tmp/alist/data/config.json
    fi
-   alist_port="$(cat /tmp/alist/data/config.json | grep port | awk '{print $2}' | awk 'NR==1 {print $1}' | tr -d "," )"
+   alist_port="$(cat /tmp/alist/data/config.json | grep http_port | awk '{print $2}' | awk 'NR==1 {print $1}' | tr -d "," )"
+   [ -z "$alist_port" ] && alist_port="$(cat /tmp/alist/data/config.json | grep port | awk '{print $2}' | awk 'NR==1 {print $1}' | tr -d "," )"
    down=1
    while [ ! -s "$alist" ] ; do
     down=`expr $down + 1`
@@ -189,11 +198,14 @@ if [ -z "$upanPath" ] ; then
    [ -z "$alist_ver" ] &&  logger -t "【AList】" "程序不完整，重新下载..." && rm -rf "$alist" && sleep 10 && alist_down
    [ ! -z "$alist_ver" ] && logger -t "【AList】" "当前$alist 版本$alist_ver,准备启动"
    if [ ! -f "/tmp/alist/data/data.db" ] ; then
-    "$alist" --data /tmp/alist/data admin >/tmp/alist/data/admin.account 2>&1
-    user=$(cat /tmp/alist/data/admin.account | grep -E "^username" | awk '{print $2}')
-    pass=$(cat /tmp/alist/data/admin.account | grep -E "^password" | awk '{print $2}')
+   cd /tmp/alist
+   [ ! -d /tmp/alist/data ] && mkdir -p /tmp/alist/data
+   rm -rf /tmp/alist/data/admin.account
+    "$alist" admin >>/tmp/alist/data/admin.account 2>&1
+    user=$(cat /tmp/alist/data/admin.account | grep "username" | awk -F 'username:' '{print $2}' | tr -d " ")
+    pass=$(cat /tmp/alist/data/admin.account | grep "password is" | awk -F 'password is:' '{print $2}' | tr -d " ")
     [ -n "$user" ] && logger -t "【AList】" "检测到首次启动alist，初始用户:$user  初始密码:$pass"
-    [ ! -n "$user" ] && logger -t "【AList】" "检测到首次启动alist，生成初始用户密码失败" && logger -t "【AList】" "请在ttyd或ssh里输入此脚本启动一次获取密码"
+    [ ! -n "$user" ] && logger -t "【AList】" "检测到首次启动alist，生成初始用户密码失败" && logger -t "【AList】" "请在控制台输入/etc/storage/alist.sh admin显示密码"
     fi
     "$alist" --data /tmp/alist/data server >/tmp/alist/alistserver.txt 2>&1 &
     datasize="$( du -k /tmp/alist/data/data.db-wal | awk '{print $1}' | tr -d "k" )"
@@ -248,7 +260,8 @@ else
    datalog="$(cat /tmp/alist/data/config.json | grep enable | awk '{print $2}' | tr -d "," )"
    [ "$datalog" = "true" ] && sed -i 's|"enable": true,|"enable": false,|g' /tmp/alist/data/config.json
    fi
-   alist_port="$(cat /tmp/alist/data/config.json | grep port | awk '{print $2}' | awk 'NR==1 {print $1}' | tr -d "," )"
+   alist_port="$(cat /tmp/alist/data/config.json | grep http_port | awk '{print $2}' | awk 'NR==1 {print $1}' | tr -d "," )"
+   [ -z "$alist_port" ] && alist_port="$(cat /tmp/alist/data/config.json | grep port | awk '{print $2}' | awk 'NR==1 {print $1}' | tr -d "," )"
    tag=$(curl -k --silent "https://api.github.com/repos/alist-org/alist/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 	[ -z "$tag" ] && tag="$( curl -k -L --connect-timeout 20 --silent https://api.github.com/repos/alist-org/alist/releases/latest | grep 'tag_name' | cut -d\" -f4 )"
 	[ -z "$tag" ] && tag="$( curl -k --connect-timeout 20 --silent https://api.github.com/repos/alist-org/alist/releases/latest | grep 'tag_name' | cut -d\" -f4 )"
@@ -324,17 +337,19 @@ else
    chmod 777 "$alist"
    [ ! -d /tmp/alist/data ] && mkdir -p /tmp/alist/data
  if [ ! -f "$upanPath/alist/data/data.db" ] ; then
-    "$alist" --data /tmp/alist/data admin >/tmp/alist/data/admin.account 2>&1
-    user=$(cat /tmp/alist/data/admin.account | grep -E "^username" | awk '{print $2}')
-    pass=$(cat /tmp/alist/data/admin.account | grep -E "^password" | awk '{print $2}')
+ cd /tmp/alist
+ rm -rf /tmp/alist/data/admin.account
+    "$alist" admin >>/tmp/alist/data/admin.account 2>&1
+    user=$(cat /tmp/alist/data/admin.account | grep "username" | awk -F 'username:' '{print $2}' | tr -d " ")
+    pass=$(cat /tmp/alist/data/admin.account | grep "password is" | awk -F 'password is:' '{print $2}' | tr -d " ")
     [ -n "$user" ] && logger -t "【AList】" "检测到首次启动alist，初始用户:$user  初始密码:$pass"
-    [ ! -n "$user" ] && logger -t "【AList】" "检测到首次启动alist，生成初始用户密码失败" && logger -t "【AList】" "请在ttyd或ssh里输入此脚本启动一次获取密码"
+    [ ! -n "$user" ] && logger -t "【AList】" "检测到首次启动alist，生成初始用户密码失败" && logger -t "【AList】" "请在控制台输入/etc/storage/alist.sh admin显示密码"
  fi
  "$alist" start
  datasize="$( du -k /tmp/alist/data/data.db-wal | awk '{print $1}' | tr -d "k" )"
  sleep 10 
  [ ! -z "$datasize" ] && logger -t "【AList】" "/etc/storage容量剩余$etcsize k，alist配置文件$datasize k"
- [ ! -z "`pidof alist`" ] && logger -t "【AList】" "alist主页:`nvram get lan_ipaddr`:5244" && logger -t "【AList】" "启动成功" && alist_keep 
+ [ ! -z "`pidof alist`" ] && logger -t "【AList】" "alist主页:`nvram get lan_ipaddr`:$alist_port" && logger -t "【AList】" "启动成功" && alist_keep 
  [ -z "`pidof alist`" ] && logger -t "【AList】" "主程序启动失败, 10 秒后自动尝试重新启动" && sleep 10 && alist_restart 
 
 fi
@@ -342,8 +357,8 @@ fi
 }
 
 alist_close () {
-        cronset "alist守护进程"
-        cronset "alist配置备份"
+        sed -Ei '/alist守护进程|^$/d' "$F"
+        sed -Ei '/alist配置备份|^$/d' "$F"
 	"$alist" stop
 	killall alist
 	killall -9 alist
@@ -357,25 +372,6 @@ alist_close () {
 
 }
 
-cronset(){
-	tmpcron=/tmp/cron_$USER
-	croncmd -l > $tmpcron 
-	sed -i "/$1/d" $tmpcron
-	sed -i '/^$/d' $tmpcron
-	echo "$2" >> $tmpcron
-	croncmd $tmpcron
-	rm -f $tmpcron
-}
-croncmd(){
-	if [ -n "$(crontab -h 2>&1 | grep '\-l')" ];then
-		crontab $1
-	else
-		crondir="$(crond -h 2>&1 | grep -oE 'Default:.*' | awk -F ":" '{print $2}')"
-		[ ! -w "$crondir" ] && crondir="/etc/storage/cron/crontabs"
-		[ "$1" = "-l" ] && cat $crondir/$USER 2>/dev/null
-		[ -f "$1" ] && cat $1 > $crondir/$USER
-	fi
-}
 
 alist_down () {
   sleep 4
@@ -399,12 +395,25 @@ restart)
 save)
 	alist_save
 	;;
+set)
+    cd /tmp/alist
+    [ ! -d /tmp/alist/data ] && mkdir -p /tmp/alist/data
+    echo "alist密码更改为 $2 "
+    "$alist" admin set $2
+	;;
 admin)
     cd /tmp/alist
     [ ! -d /tmp/alist/data ] && mkdir -p /tmp/alist/data
-    "$alist" --data /tmp/alist/data admin >/tmp/alist/data/admin.account 2>&1
-    user=$(cat /tmp/alist/data/admin.account | grep -E "^username" | awk '{print $2}')
-    pass=$(cat /tmp/alist/data/admin.account | grep -E "^password" | awk '{print $2}')
+    rm -rf /tmp/alist/data/admin.account
+    "$alist" admin >>/tmp/alist/data/admin.account 2>&1
+    user=$(cat /tmp/alist/data/admin.account | grep "username" | awk -F 'username:' '{print $2}' | tr -d " ")
+    pass=$(cat /tmp/alist/data/admin.account | grep "password is" | awk -F 'password is:' '{print $2}' | tr -d " ")
+    if [ -z "$pass" ] ; then
+    rm -rf /tmp/alist/data/admin.account
+    "$alist" admin random >>/tmp/alist/data/admin.account 2>&1
+    user=$(cat /tmp/alist/data/admin.account | grep "username" | awk -F 'username:' '{print $2}' | tr -d " " )
+    pass=$(cat /tmp/alist/data/admin.account | grep "password" | awk -F 'password:' '{print $2}' | tr -d " " )
+    fi
     echo "用户名: $user  密码: $pass"
     [ -n "$user" ] && logger -t "【AList】" "用户名: $user  密码: $pass"
 	;;
